@@ -1,36 +1,46 @@
 import React, { useState } from 'react';
-import './App.css'; // You can use the default Vite CSS
+import './App.css';
 
 const API_URL = 'http://localhost:3001/analyze';
 
 function App() {
-  const [input, setInput] = useState('');
+  // Use state to hold the selected file object
+  const [file, setFile] = useState(null);
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const handleFileChange = (e) => {
+    // Get the file object from the input element
+    setFile(e.target.files[0]);
+    setResponse(null); // Clear previous response
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!file) return;
 
     setLoading(true);
-    setResponse(null); // Clear previous response
+    setResponse(null);
+
+    // Create a FormData object to handle the file upload
+    const formData = new FormData();
+    // 'resumeFile' must match the field name used in api.js: upload.single('resumeFile')
+    formData.append('resumeFile', file);
 
     try {
-      // 1. Send the resume text to your Node.js API
+      // 1. Send the FormData to the Node.js API
       const res = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ resumeText: input }),
+        // DO NOT set Content-Type header; FormData sets it correctly as multipart/form-data
+        body: formData,
       });
 
       const data = await res.json();
 
       if (data.status === 'success') {
-        setResponse(data.data); // Set the structured JSON data
+        setResponse(data.data);
       } else {
-        setResponse({ error: data.message }); // Display API error message
+        setResponse({ error: `Analysis Failed: ${data.message || 'Unknown error'}` });
       }
 
     } catch (error) {
@@ -38,26 +48,35 @@ function App() {
       setResponse({ error: "Could not connect to the analysis server (API is down)." });
     } finally {
       setLoading(false);
+      // Optional: Clear the file input after submission
+      setFile(null);
+      document.getElementById('fileInput').value = null;
     }
   };
 
   return (
     <div className="app-container">
       <h1>Llama 4 Scout Resume Analyzer</h1>
-      <p>Enter resume text below to get structured JSON data from your Groq agent.</p>
+      <p>Upload a PDF resume below for structural analysis by your Groq agent.</p>
 
       <form onSubmit={handleSubmit} className="input-form">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Paste resume text here (e.g., Name, Experience, Skills...)"
-          rows="10"
+        <input
+          id="fileInput"
+          type="file"
+          accept="application/pdf"
+          onChange={handleFileChange}
           disabled={loading}
+          required
         />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Analyzing...' : 'Analyze Resume'}
+        <button type="submit" disabled={loading || !file}>
+          {loading ? 'Analyzing...' : 'Upload & Analyze Resume'}
         </button>
       </form>
+
+      {file && !loading && (
+        <p className="file-info">Selected file: <strong>{file.name}</strong></p>
+      )}
+
 
       {/* Response Display */}
       {response && (
@@ -72,11 +91,6 @@ function App() {
           )}
         </div>
       )}
-
-      {/* Guidance for testing */}
-      <small>
-        To test: Copy a resume's text content and paste it above.
-      </small>
     </div>
   );
 }

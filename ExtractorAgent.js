@@ -8,7 +8,7 @@ class ExtractorAgent extends BaseAgent {
     constructor() {
         super(
             "Extractor",
-            `You are a highly detail-oriented Data Extractor. Your task is to extract all significant data from the provided resume text (personal info, work history, education, skills, certifications) and transform it into a single, comprehensive JSON object. You must strictly adhere to the requested JSON structure and provide ONLY the JSON object.`,
+            `You are a highly detail-oriented Data Extractor. Your task is to extract all significant data from the provided resume text, which may be in a language like Swedish. You must **TRANSLATE ALL TEXTUAL CONTENT** (summary, descriptions, degrees) into **ENGLISH** and transform it into a single, comprehensive JSON object. You must strictly adhere to the requested JSON structure and provide ONLY the JSON object.`,
             "meta-llama/llama-4-scout-17b-16e-instruct"
         );
     }
@@ -144,31 +144,31 @@ class ExtractorAgent extends BaseAgent {
     }
 }
 
-// --- Example Usage ---
-async function main() {
-    // Requires a file named test_resume.pdf in your project root.
-    const mockMessages = [
-        {
-            role: "user",
-            content: JSON.stringify({
-                file_path: "test_resume.pdf"
-            })
-        }
-    ];
+// // --- Example Usage ---
+// async function main() {
+//     // Requires a file named test_resume.pdf in your project root.
+//     const mockMessages = [
+//         {
+//             role: "user",
+//             content: JSON.stringify({
+//                 file_path: "test_resume.pdf"
+//             })
+//         }
+//     ];
 
-    const agent = new ExtractorAgent();
-    const result = await agent.run(mockMessages);
+//     const agent = new ExtractorAgent();
+//     const result = await agent.run(mockMessages);
 
-    if (result.error) {
-        console.log("\n--- Extractor Agent FAILED ---");
-        console.log(result.error);
-        return;
-    }
+//     if (result.error) {
+//         console.log("\n--- Extractor Agent FAILED ---");
+//         console.log(result.error);
+//         return;
+//     }
 
-    console.log("\n--- Extractor Agent Output (Structured Data) ---");
-    console.log(JSON.stringify(result.structured_data, null, 2));
-    console.log(`\nStatus: ${result.extraction_status}`);
-}
+//     console.log("\n--- Extractor Agent Output (Structured Data) ---");
+//     console.log(JSON.stringify(result.structured_data, null, 2));
+//     console.log(`\nStatus: ${result.extraction_status}`);
+// }
 
-main();
+// main();
 export default ExtractorAgent; 
